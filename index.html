@@ -66,6 +66,8 @@
 
     <div class="container">
       <h1 class="mt-5 text-center">Image to JSON Extractor</h1>
+      <!-- Add this new error message div -->
+      <div id="error-message" class="alert alert-danger mt-3" style="display: none;"></div>
       <div class="row" id="industry-cards">
         <!-- Industry cards will be dynamically generated here -->
       </div>
@@ -99,6 +101,7 @@
       const loadingIndicator = document.querySelector('.loading');
       const resultTable = document.getElementById('result-table');
       const saveJsonBtn = document.getElementById('save-json-btn');
+      const errorMessageDiv = document.getElementById('error-message');
 
       const industries = {
         insurance: {
@@ -212,7 +215,7 @@
                   method: "POST",
                   credentials: "include",
                   headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
+                  body: JSON.stringify({  
                       model: "gpt-4o-mini",
                       messages: [{
                           role: "user",
@@ -242,11 +245,12 @@
           } catch (error) {
               loadingIndicator.style.display = 'none';
               console.error("Error processing image:", error);
-              alert("An error occurred while processing the image. Check the console for details.");
+              displayError("An error occurred while processing the image. Please try again or select a different image.");
           }
       }
 
       function displayResult(content) {
+          errorMessageDiv.style.display = 'none'; // Hide any previous error messages
           resultTable.innerHTML = '';
           console.log("Content received:", content);
 
@@ -277,10 +281,7 @@
               saveJsonBtn.onclick = () => saveJsonFile(data);
           } catch (error) {
               console.error("Error displaying result:", error);
-              // If all parsing attempts fail, display the raw content
-              const row = resultTable.insertRow();
-              row.insertCell(0).textContent = "Raw Response";
-              row.insertCell(1).textContent = content;
+              displayError("Unable to parse the result. Please try uploading a different image or selecting another template.");
           }
       }
 
@@ -296,6 +297,15 @@
           a.click();
           document.body.removeChild(a);
           URL.revokeObjectURL(url);
+      }
+
+      function displayError(message) {
+          errorMessageDiv.textContent = message;
+          errorMessageDiv.style.display = 'block';
+          resultTable.innerHTML = ''; // Clear any previous results
+          saveJsonBtn.style.display = 'none'; // Hide the save button
+          // Scroll to the error message to ensure it's visible
+          errorMessageDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
 
       // Add these functions for theme handling
